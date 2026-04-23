@@ -4,32 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TRIMSCAN — Extracteur TrimBox PDF</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0c0c0c;--surface:#141414;--surface2:#1c1c1c;
   --border:#252525;--border2:#333;
-  --text:#f0ede8;--muted:#666;--muted2:#444;
-  --accent:#e8602c;--accent-dim:rgba(232,96,44,.12);
-  --green:#4ade80;--green-dim:rgba(74,222,128,.1);
-  --yellow:#fbbf24;--yellow-dim:rgba(251,191,36,.1);
-  --red:#f87171;--red-dim:rgba(248,113,113,.1);
+  --text:#f0ede8;--muted:#666;--muted2:#3a3a3a;
+  --accent:#e8602c;--accent-dim:rgba(232,96,44,.13);
+  --green:#4ade80;--green-dim:rgba(74,222,128,.09);
+  --yellow:#fbbf24;--yellow-dim:rgba(251,191,36,.09);
+  --red:#f87171;--red-dim:rgba(248,113,113,.09);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:.3;pointer-events:none;z-index:0}
-header{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border);background:rgba(12,12,12,.9);backdrop-filter:blur(12px)}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:.28;pointer-events:none;z-index:0}
+header{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid var(--border);background:rgba(12,12,12,.92);backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:baseline;gap:12px}
 .logo-mark{font-size:20px;font-weight:800;letter-spacing:.08em}
-.logo-mark span{color:var(--accent)}
+.logo-mark em{font-style:normal;color:var(--accent)}
 .logo-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .hbadge{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border2);padding:5px 12px;border-radius:4px}
 main{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:48px 24px 80px}
 .hero{margin-bottom:40px}
 .hero h1{font-size:clamp(32px,5vw,56px);font-weight:800;line-height:1.05;letter-spacing:-.01em;margin-bottom:10px}
 .hero h1 em{font-style:normal;color:var(--accent)}
-.hero p{font-size:14px;color:var(--muted);font-family:'DM Mono',monospace;max-width:500px;line-height:1.7}
+.hero p{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;max-width:520px;line-height:1.7}
 #dropzone{position:relative;border:1.5px dashed var(--border2);border-radius:12px;padding:52px 32px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color .2s,background .2s;margin-bottom:36px;overflow:hidden}
 #dropzone::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--accent-dim),transparent 70%);opacity:0;transition:opacity .3s}
 #dropzone:hover::before,#dropzone.over::before{opacity:1}
@@ -47,25 +46,25 @@ main{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:48px 24px
 .btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:7px 15px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,background .15s}
 .btn:hover{border-color:var(--text);color:var(--text);background:var(--surface2)}
 .btn-ok{border-color:var(--accent);color:var(--accent)}
-.btn-ok:hover{background:var(--accent-dim)}
+.btn-ok:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .btn-del:hover{border-color:var(--red);color:var(--red)}
 .fcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s}
 .fcard:hover{border-color:var(--border2)}
-.fhead{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border);gap:10px}
+.fhead{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border)}
 .ficon{width:26px;height:26px;background:var(--accent-dim);border:1px solid rgba(232,96,44,.25);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .fname{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
 .fmeta{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-thead th{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);padding:8px 16px;text-align:left;border-bottom:1px solid var(--border)}
-thead th:not(:first-child){text-align:right}
+thead th{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);padding:8px 16px;text-align:left;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015)}
+th:not(:first-child){text-align:right}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--surface2)}
-tbody td{font-family:'DM Mono',monospace;font-size:13px;color:var(--text);padding:10px 16px;text-align:right}
-tbody td:first-child{text-align:left;color:var(--muted);font-size:12px}
-.dv{font-size:14px;font-weight:500}
-.badge{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;padding:4px 9px;border-radius:4px;text-transform:uppercase}
+td{font-family:'DM Mono',monospace;font-size:13px;color:var(--text);padding:10px 16px;text-align:right}
+td:first-child{text-align:left;color:var(--muted);font-size:12px}
+.dv{font-size:14px;font-weight:500;color:var(--text)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;padding:4px 9px;border-radius:4px;text-transform:uppercase;white-space:nowrap}
 .badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
 .b-trim{background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,.2)}.b-trim::before{background:var(--green)}
 .b-bleed{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(251,191,36,.2)}.b-bleed::before{background:var(--yellow)}
@@ -73,28 +72,27 @@ tbody td:first-child{text-align:left;color:var(--muted);font-size:12px}
 .b-media{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,.2)}.b-media::before{background:var(--red)}
 .b-load{background:rgba(100,100,100,.1);color:var(--muted);border:1px solid var(--border)}.b-load::before{background:var(--muted);animation:pulse 1.2s infinite}
 .b-err{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,.2)}.b-err::before{background:var(--red)}
-.b-notfound{background:rgba(248,113,113,.08);color:#fca5a5;border:1px dashed rgba(248,113,113,.3)}.b-notfound::before{background:#fca5a5}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.warn{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.18);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;color:#fca5a5;line-height:1.6}
 .sumbar{display:flex;align-items:center;justify-content:space-between;padding:14px 0 0;flex-wrap:wrap;gap:12px}
 .stats{display:flex;gap:24px}
 .stat-val{font-size:20px;font-weight:700;line-height:1}
 .stat-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
-.warn-banner{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:6px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;color:#fca5a5;margin-top:8px;line-height:1.6}
 @media(max-width:600px){header{padding:14px 18px}main{padding:28px 14px 60px}.hbadge{display:none}}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">
-    <span class="logo-mark">TRIM<span>SCAN</span></span>
+    <span class="logo-mark">TRIM<em>SCAN</em></span>
     <span class="logo-sub">PDF TrimBox Extractor</span>
   </div>
-  <span class="hbadge">v4.0 — PAO Edition</span>
+  <span class="hbadge">v5.0 — PAO Edition</span>
 </header>
 <main>
   <div class="hero">
-    <h1>Extraire le <em>TrimBox</em><br>de vos PDF</h1>
-    <p>Lecture directe du TrimBox (taille de découpe finale).<br>Supporte les fichiers simples et multipages, PDF/X et PDF standard.</p>
+    <h1>Zone de rognage<br><em>TrimBox</em> PDF</h1>
+    <p>Lecture directe via le dictionnaire PDF.<br>Supporte tous les formats : InDesign, Illustrator, Acrobat, PDF/X-1a, PDF/X-4, multipage.</p>
   </div>
 
   <div id="dropzone">
@@ -120,195 +118,83 @@ tbody td:first-child{text-align:left;color:var(--muted);font-size:12px}
 </main>
 
 <input type="file" id="fi" accept=".pdf" multiple style="display:none">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+<!-- pdf-lib: proper PDF dictionary parser, handles TrimBox/BleedBox/CropBox correctly -->
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
 const PT = 0.352778;
-const NUM = '[-+]?[0-9]*\\.?[0-9]+';
-const BOX_PRIORITY = ['TrimBox','BleedBox','CropBox','MediaBox'];
 const groups = [];
 
-/* ─── Box regex search ─── */
-function findBoxes(text, name) {
-  const re = new RegExp(`/${name}\\s*\\[\\s*(${NUM})\\s+(${NUM})\\s+(${NUM})\\s+(${NUM})\\s*\\]`, 'g');
-  const out = []; let m;
-  while ((m = re.exec(text)) !== null) {
-    const x1 = parseFloat(m[1]), y1 = parseFloat(m[2]), x2 = parseFloat(m[3]), y2 = parseFloat(m[4]);
-    out.push({ wMm: +((Math.abs(x2 - x1)) * PT).toFixed(2), hMm: +((Math.abs(y2 - y1)) * PT).toFixed(2) });
-  }
-  return out;
-}
-
-/* ─── Decompress one stream ─── */
-async function inflate(data) {
-  for (const fmt of ['deflate', 'deflate-raw']) {
-    try {
-      const ds = new DecompressionStream(fmt);
-      const w = ds.writable.getWriter(), r = ds.readable.getReader();
-      w.write(data); w.close();
-      const chunks = []; let tot = 0;
-      while (true) {
-        const { done, value } = await r.read();
-        if (done) break;
-        chunks.push(value); tot += value.length;
-        if (tot > 600000) break;
-      }
-      const out = new Uint8Array(tot); let off = 0;
-      for (const c of chunks) { out.set(c, off); off += c.length; }
-      return out;
-    } catch (_) {}
-  }
-  return null;
-}
-
-/* ─── Collect all text sources from a PDF buffer ─── */
-async function collectTextSources(bytes, raw) {
-  const sources = [raw]; // source 0 = raw bytes as latin1 text
-
-  // Collect stream start positions (sync, before any await)
-  const positions = [];
-  let i = 0;
-  while (i < raw.length - 6) {
-    const p = raw.indexOf('stream', i);
-    if (p === -1) break;
-    // Must be followed by \n or \r\n (possibly with spaces/tabs before)
-    let k = p + 6;
-    while (raw[k] === ' ' || raw[k] === '\t') k++;
-    if (raw[k] === '\n') {
-      positions.push({ dataStart: k + 1, hdrEnd: p });
-    } else if (raw[k] === '\r' && raw[k + 1] === '\n') {
-      positions.push({ dataStart: k + 2, hdrEnd: p });
-    }
-    i = p + 7;
-  }
-
-  // Process each stream
-  for (const { dataStart, hdrEnd } of positions) {
-    const hdr = raw.slice(Math.max(0, hdrEnd - 2500), hdrEnd);
-
-    // Must contain FlateDecode (any form)
-    const hasFl = hdr.includes('FlateDecode') ||
-                  /\/Fl[\s\n\r>/\[]/.test(hdr);
-    if (!hasFl) continue;
-
-    // Skip image data (binary, not useful for box search)
-    if (/\/Subtype\s*\/Image/i.test(hdr)) continue;
-
-    // Skip obviously huge streams (fonts > 400 KB, long content streams)
-    const lm = hdr.match(/\/Length\s+(\d+)/);
-    if (lm && parseInt(lm[1]) > 400000) continue;
-
-    // Find endstream boundary
-    let end = raw.indexOf('endstream', dataStart);
-    if (end === -1) continue;
-    while (end > dataStart && (raw[end - 1] === '\n' || raw[end - 1] === '\r')) end--;
-
-    const compressed = bytes.slice(dataStart, end);
-    if (compressed.length < 4) continue;
-
-    const dec = await inflate(compressed);
-    if (dec) sources.push(new TextDecoder('latin1').decode(dec));
-  }
-
-  return sources;
-}
-
-/* ─── Main extraction ─── */
 async function extractFile(buffer) {
-  const bytes = new Uint8Array(buffer);
-  const raw = new TextDecoder('latin1').decode(bytes);
+  const pdfDoc = await PDFLib.PDFDocument.load(buffer, {
+    ignoreEncryption: true,
+    throwOnInvalidObject: false,
+    updateMetadata: false
+  });
 
-  // PDF.js: reliable page count + fallback dimensions
-  const pdfDoc = await pdfjsLib.getDocument({ data: bytes, verbosity: 0 }).promise;
-  const numPages = pdfDoc.numPages;
-  const pdfFallback = [];
-  for (let n = 1; n <= numPages; n++) {
-    const pg = await pdfDoc.getPage(n);
-    const [x1, y1, x2, y2] = pg.view;
-    pdfFallback.push({
-      wMm: +((Math.abs(x2 - x1)) * PT).toFixed(2),
-      hMm: +((Math.abs(y2 - y1)) * PT).toFixed(2)
+  const pageCount = pdfDoc.getPageCount();
+  const pages = [];
+
+  for (let i = 0; i < pageCount; i++) {
+    const page = pdfDoc.getPage(i);
+
+    // pdf-lib exposes these directly, reading from the PDF page dictionary
+    // including inherited values from the Pages tree and indirect references
+    const trimBox  = page.getTrimBox();
+    const bleedBox = page.getBleedBox();
+    const cropBox  = page.getCropBox();
+    const mediaBox = page.getMediaBox();
+
+    let box, source;
+
+    if (trimBox) {
+      box = trimBox; source = 'TrimBox';
+    } else if (bleedBox) {
+      box = bleedBox; source = 'BleedBox';
+    } else if (cropBox) {
+      box = cropBox; source = 'CropBox';
+    } else {
+      box = mediaBox; source = 'MediaBox';
+    }
+
+    pages.push({
+      wMm: +(box.width  * PT).toFixed(2),
+      hMm: +(box.height * PT).toFixed(2),
+      source
     });
   }
-  pdfDoc.destroy();
 
-  // Collect all text (raw + all decompressed FlateDecode streams)
-  const sources = await collectTextSources(bytes, raw);
-
-  // Search: for each box type, check ALL sources before moving to next type
-  // → TrimBox found anywhere beats MediaBox found anywhere
-  for (const name of BOX_PRIORITY) {
-    let allBoxes = [];
-    for (const src of sources) {
-      allBoxes = allBoxes.concat(findBoxes(src, name));
-    }
-
-    if (allBoxes.length === 0) continue;
-
-    // Deduplicate: same wMm+hMm values (inherited box appears multiple times)
-    const unique = [];
-    for (const b of allBoxes) {
-      if (!unique.find(u => u.wMm === b.wMm && u.hMm === b.hMm)) unique.push(b);
-    }
-
-    // Assign to pages
-    let pages;
-    if (allBoxes.length === 1 || unique.length === 1) {
-      // One box for all pages (inherited)
-      pages = Array.from({ length: numPages }, () => ({ ...unique[0], source: name }));
-    } else if (allBoxes.length >= numPages) {
-      // One box per page
-      pages = Array.from({ length: numPages }, (_, i) => ({ ...allBoxes[i], source: name }));
-    } else {
-      // Fewer boxes than pages: use last known
-      pages = Array.from({ length: numPages }, (_, i) => ({
-        ...(allBoxes[i] ?? allBoxes[allBoxes.length - 1]),
-        source: name
-      }));
-    }
-
-    return { numPages, pages, foundSource: name };
-  }
-
-  // Absolute fallback: PDF.js CropBox/MediaBox
-  return {
-    numPages,
-    pages: pdfFallback.map(p => ({ ...p, source: 'MediaBox' })),
-    foundSource: 'MediaBox',
-    isFallback: true
-  };
+  const foundSource = pages[0]?.source ?? 'MediaBox';
+  const isFallback  = pages.every(p => p.source === 'MediaBox');
+  return { numPages: pageCount, pages, foundSource, isFallback };
 }
 
-/* ─── UI ─── */
+/* ── UI ── */
 function badgeHtml(source) {
   if (!source) return `<span class="badge b-load">Analyse…</span>`;
-  if (source === '__error__') return `<span class="badge b-err">Erreur lecture</span>`;
+  if (source === '__err__') return `<span class="badge b-err">Erreur lecture</span>`;
   const cls = source === 'TrimBox' ? 'b-trim'
     : source === 'BleedBox' ? 'b-bleed'
-    : source === 'CropBox' ? 'b-crop'
+    : source === 'CropBox'  ? 'b-crop'
     : 'b-media';
   return `<span class="badge ${cls}">${source}</span>`;
 }
 
 function cardHtml(g) {
-  if (g.loading) {
-    return `<div class="fcard"><div class="fhead">
-      <div class="ficon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <span class="fname">${g.name}</span>
-      ${badgeHtml(null)}
-    </div></div>`;
-  }
-  if (g.error) {
-    return `<div class="fcard"><div class="fhead">
-      <div class="ficon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
-      <span class="fname">${g.name}</span>
-      ${badgeHtml('__error__')}
-    </div></div>`;
-  }
+  if (g.loading) return `<div class="fcard"><div class="fhead">
+    <div class="ficon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <span class="fname">${g.name}</span>
+    ${badgeHtml(null)}
+  </div></div>`;
 
-  const same = g.pages.every(p => p.wMm === g.pages[0].wMm && p.hMm === g.pages[0].hMm);
+  if (g.error) return `<div class="fcard"><div class="fhead">
+    <div class="ficon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+    <span class="fname">${g.name}</span>
+    ${badgeHtml('__err__')}
+  </div></div>`;
+
   const f = v => parseFloat(v).toFixed(2);
+  const same = g.pages.every(p => p.wMm === g.pages[0].wMm && p.hMm === g.pages[0].hMm && p.source === g.pages[0].source);
 
   let rows;
   if (same) {
@@ -317,11 +203,13 @@ function cardHtml(g) {
     rows = `<tr><td>${lbl}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>`;
   } else {
     rows = g.pages.map((p, i) =>
-      `<tr><td>p. ${i + 1}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>`
+      `<tr><td>p. ${i+1}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>`
     ).join('');
   }
 
-  const warn = g.isFallback ? `<div class="warn-banner">⚠ TrimBox introuvable dans ce fichier — les dimensions affichées proviennent du MediaBox (boîte de page générale). Assurez-vous que le PDF est bien exporté en PDF/X avec un TrimBox défini.</div>` : '';
+  const warn = g.isFallback
+    ? `<div class="warn" style="margin:12px 16px 14px">⚠ Aucun TrimBox trouvé dans ce PDF. Les dimensions affichées sont celles du MediaBox. Vérifiez l'export (PDF/X avec zone de rognage définie).</div>`
+    : '';
 
   return `<div class="fcard">
     <div class="fhead">
@@ -329,12 +217,10 @@ function cardHtml(g) {
       <span class="fname">${g.name}</span>
       <span class="fmeta">${g.numPages} page${g.numPages > 1 ? 's' : ''}</span>
     </div>
-    <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Page</th><th>Largeur</th><th>Hauteur</th><th>Source</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Page</th><th>Largeur</th><th>Hauteur</th><th>Source</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
     ${warn}
   </div>`;
 }
@@ -342,24 +228,19 @@ function cardHtml(g) {
 function render() {
   const el = document.getElementById('results');
   if (!groups.length) { el.innerHTML = ''; return; }
-
   const done = groups.filter(g => !g.loading && !g.error);
   const totalFiles = groups.length;
   const totalPages = done.reduce((s, g) => s + (g.numPages || 0), 0);
-
-  const toolbar = done.length ? `
-    <div class="toolbar">
-      <button class="btn btn-ok" onclick="exportCSV()">↓ Exporter CSV</button>
-      <button class="btn btn-del" onclick="clearAll()">Effacer tout</button>
-    </div>` : `<div class="toolbar"><button class="btn btn-del" onclick="clearAll()">Effacer tout</button></div>`;
-
+  const toolbar = done.length
+    ? `<div class="toolbar"><button class="btn btn-ok" onclick="exportCSV()">↓ Exporter CSV</button><button class="btn btn-del" onclick="clearAll()">Effacer tout</button></div>`
+    : `<div class="toolbar"><button class="btn btn-del" onclick="clearAll()">Effacer tout</button></div>`;
   el.innerHTML = `
     <div class="sec-head"><span class="sec-title">Résultats</span>${toolbar}</div>
     ${groups.map(cardHtml).join('')}
     <div class="sumbar">
       <div class="stats">
-        <div><div class="stat-val">${totalFiles}</div><div class="stat-lbl">Fichier${totalFiles > 1 ? 's' : ''}</div></div>
-        <div><div class="stat-val">${totalPages}</div><div class="stat-lbl">Page${totalPages > 1 ? 's' : ''}</div></div>
+        <div><div class="stat-val">${totalFiles}</div><div class="stat-lbl">Fichier${totalFiles>1?'s':''}</div></div>
+        <div><div class="stat-val">${totalPages}</div><div class="stat-lbl">Page${totalPages>1?'s':''}</div></div>
       </div>
     </div>`;
 }
@@ -371,9 +252,11 @@ async function processFile(file) {
   groups.push(ph);
   render();
   try {
-    const res = await extractFile(await file.arrayBuffer());
+    const buf = await file.arrayBuffer();
+    const res = await extractFile(buf);
     groups[groups.indexOf(ph)] = { name: file.name, ...res };
-  } catch (e) {
+  } catch(e) {
+    console.error(e);
     groups[groups.indexOf(ph)] = { name: file.name, error: true };
   }
   render();
@@ -384,11 +267,11 @@ function exportCSV() {
   for (const g of groups) {
     if (!g.pages) continue;
     g.pages.forEach((p, i) =>
-      lines.push(`${g.name};${i + 1};${parseFloat(p.wMm).toFixed(2)};${parseFloat(p.hMm).toFixed(2)};${p.source}`)
+      lines.push(`${g.name};${i+1};${parseFloat(p.wMm).toFixed(2)};${parseFloat(p.hMm).toFixed(2)};${p.source}`)
     );
   }
   const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })),
+    href: URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\n')], { type: 'text/csv;charset=utf-8;' })),
     download: 'trimbox-export.csv'
   });
   a.click(); URL.revokeObjectURL(a.href);
