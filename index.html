@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrimScan — Extracteur TrimBox PDF</title>
+<title>Trimbox Scan — Extracteur TrimBox PDF</title>
 <style>
 @font-face {
   font-family: 'Montserrat';
@@ -547,6 +547,28 @@ td:first-child {
   .hero h1 { font-size: 24px; }
   .info-pills { display: none; }
 }
+
+.bleed-row td {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  padding-top: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.bleed-row td:first-child { padding-left: 28px; font-style: italic; }
+.bleed-row:last-child td { border-bottom: none; }
+.bleed-note {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
 </style>
 </head>
 <body>
@@ -560,7 +582,7 @@ td:first-child {
         <rect x="8" y="13" width="8" height="5" rx="1"/>
       </svg>
     </div>
-    <span class="logo-name">Trim<span>Scan</span></span>
+    <span class="logo-name">Trimbox <span>Scan</span></span>
   </div>
   <div class="header-right">
     <span class="version-badge">PAO Edition v5.0</span>
@@ -576,7 +598,7 @@ td:first-child {
     <div class="hero-label">Outil PAO</div>
     <h1>Extraire la taille de découpe<br>de vos fichiers PDF</h1>
     <p class="hero-desc">
-      <strong>TrimScan lit directement le TrimBox</strong> de chaque page de vos PDF — c'est la zone de rognage finale définie à l'export, visible dans Acrobat sous "Propriétés de la page". Glissez un ou plusieurs fichiers pour obtenir instantanément les dimensions en millimètres, sans ouvrir Acrobat.
+      <strong>Trimbox Scan lit directement le TrimBox</strong> de chaque page de vos PDF — c'est la zone de rognage finale définie à l'export, visible dans Acrobat sous "Propriétés de la page". Glissez un ou plusieurs fichiers pour obtenir instantanément les dimensions en millimètres, sans ouvrir Acrobat.
     </p>
     <div class="info-pills">
       <span class="info-pill">
@@ -664,10 +686,27 @@ async function extractFile(buffer) {
     else if (bleedBox) { box = bleedBox; source = 'BleedBox'; }
     else if (cropBox)  { box = cropBox;  source = 'CropBox'; }
     else               { box = mediaBox; source = 'MediaBox'; }
+
+    // Fond perdu: capture BleedBox when TrimBox is the main source
+    let bleed = null;
+    if (source === 'TrimBox' && bleedBox) {
+      const bw = +(bleedBox.width  * PT).toFixed(2);
+      const bh = +(bleedBox.height * PT).toFixed(2);
+      const tw = +(box.width  * PT).toFixed(2);
+      const th = +(box.height * PT).toFixed(2);
+      if (bw > tw || bh > th) {
+        bleed = {
+          wMm: bw, hMm: bh,
+          marginW: +((bw - tw) / 2).toFixed(2),
+          marginH: +((bh - th) / 2).toFixed(2)
+        };
+      }
+    }
+
     pages.push({
       wMm: +(box.width  * PT).toFixed(2),
       hMm: +(box.height * PT).toFixed(2),
-      source
+      source, bleed
     });
   }
   const isFallback = pages.every(p => p.source === 'MediaBox');
@@ -704,10 +743,10 @@ function cardHtml(g) {
   if (same) {
     const p = g.pages[0];
     const lbl = g.numPages > 1 ? `Toutes les pages (×${g.numPages})` : 'Page 1';
-    rows = `<tr><td>${lbl}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>`;
+    rows = `<tr><td>${lbl}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>${p.bleed ? `<tr class="bleed-row"><td>↳ Fond perdu</td><td>${f(p.bleed.wMm)} mm</td><td>${f(p.bleed.hMm)} mm</td><td><span class="bleed-note">+${f(p.bleed.marginW)} mm/côté</span></td></tr>` : ''}`;
   } else {
     rows = g.pages.map((p, i) =>
-      `<tr><td>Page ${i+1}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>`
+      `<tr><td>Page ${i+1}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}</td></tr>${p.bleed ? `<tr class="bleed-row"><td>↳ Fond perdu</td><td>${f(p.bleed.wMm)} mm</td><td>${f(p.bleed.hMm)} mm</td><td><span class="bleed-note">+${f(p.bleed.marginW)} mm/côté</span></td></tr>` : ''}`
     ).join('');
   }
 
