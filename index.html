@@ -666,6 +666,91 @@ td:first-child {
   border-color: rgba(167,139,250,.25);
 }
 
+
+/* ── Image type badge ── */
+.b-img { background: rgba(59,130,246,.1); color: #3b82f6; border: 1px solid rgba(59,130,246,.25); }
+.b-img::before { background: #3b82f6; }
+[data-theme="dark"] .b-img { color: #60a5fa; background: rgba(96,165,250,.1); border-color: rgba(96,165,250,.25); }
+
+/* ── Filters bar ── */
+.filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-right: 2px;
+}
+.filter-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .01em;
+}
+.filter-btn:hover { background: var(--surface2); color: var(--text); }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ── Sort indicators ── */
+thead th { cursor: pointer; user-select: none; position: relative; }
+thead th:hover { color: var(--text); }
+thead th .sort-arrow { margin-left: 4px; opacity: .4; font-size: 9px; }
+thead th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+
+/* ── Clickable cell copy ── */
+td.copyable { cursor: pointer; position: relative; }
+td.copyable:hover .dv { color: var(--accent); }
+td.copyable::after {
+  content: 'copié !';
+  position: absolute;
+  right: 18px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+td.copyable.copied::after { opacity: 1; }
+
+/* ── Toolbar wrap ── */
+.toolbar { flex-wrap: wrap; gap: 6px; }
+
+
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  transition: background .12s, color .12s, border-color .12s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.copy-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.copy-btn.done { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+td.td-copy { text-align: right; vertical-align: middle; padding: 6px 12px; }
+
 </style>
 </head>
 <body>
@@ -735,6 +820,10 @@ td:first-child {
       <span class="fmt">PDF/X-1a</span>
       <span class="fmt">PDF/X-4</span>
       <span class="fmt">Multipage</span>
+      <span class="fmt">JPEG</span>
+      <span class="fmt">PNG</span>
+      <span class="fmt">TIFF</span>
+      <span class="fmt">WebP</span>
     </div>
   </div>
 
@@ -748,10 +837,11 @@ td:first-child {
   </div>
 </main>
 
-<input type="file" id="fi" accept=".pdf" multiple style="display:none">
+<input type="file" id="fi" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff,.webp" multiple style="display:none">
 
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const PT = 0.352778;
 const groups = [];
@@ -864,10 +954,10 @@ function cardHtml(g) {
   if (same) {
     const p = g.pages[0];
     const lbl = g.numPages > 1 ? `Toutes les pages (×${g.numPages})` : 'Page 1';
-    rows = `<tr><td>${lbl}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}${p.userUnit && p.userUnit !== 1 ? ' <span class="scale-note" title="UserUnit='+p.userUnit+' appliqué">×'+p.userUnit+'</span>' : ''}</td></tr>${p.bleed ? `<tr class="bleed-row"><td>↳ Fond perdu</td><td>${f(p.bleed.wMm)} mm</td><td>${f(p.bleed.hMm)} mm</td><td><span class="bleed-note">+${f(p.bleed.marginW)} mm/côté</span></td></tr>` : ''}`;
+    rows = `<tr><td>${lbl}</td><td class="copyable" data-copy="${f(p.wMm)} mm"><span class="dv">${f(p.wMm)} mm</span></td><td class="copyable" data-copy="${f(p.hMm)} mm"><span class="dv">${f(p.hMm)} mm</span></td><td>${g.isImage ? '<span class="badge b-img">Image</span>' : badgeHtml(p.source)}${p.userUnit && p.userUnit !== 1 ? ' <span class="scale-note" title="UserUnit='+p.userUnit+' appliqué">×'+p.userUnit+'</span>' : ''}</td><td class="td-copy"><button class="copy-btn" data-copy="${f(p.wMm)} x ${f(p.hMm)} mm"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copier</button></td></tr>${p.bleed ? `<tr class="bleed-row"><td>↳ Fond perdu</td><td>${f(p.bleed.wMm)} mm</td><td>${f(p.bleed.hMm)} mm</td><td><span class="bleed-note">+${f(p.bleed.marginW)} mm/côté</span></td><td></td></tr>` : ''}`;
   } else {
     rows = g.pages.map((p, i) =>
-      `<tr><td>Page ${i+1}</td><td class="dv">${f(p.wMm)} mm</td><td class="dv">${f(p.hMm)} mm</td><td>${badgeHtml(p.source)}${p.userUnit && p.userUnit !== 1 ? ' <span class="scale-note" title="UserUnit='+p.userUnit+' appliqué">×'+p.userUnit+'</span>' : ''}</td></tr>${p.bleed ? `<tr class="bleed-row"><td>↳ Fond perdu</td><td>${f(p.bleed.wMm)} mm</td><td>${f(p.bleed.hMm)} mm</td><td><span class="bleed-note">+${f(p.bleed.marginW)} mm/côté</span></td></tr>` : ''}`
+      `<tr><td>Page ${i+1}</td><td class="copyable" data-copy="${f(p.wMm)} mm"><span class="dv">${f(p.wMm)} mm</span></td><td class="copyable" data-copy="${f(p.hMm)} mm"><span class="dv">${f(p.hMm)} mm</span></td><td>${g.isImage ? '<span class="badge b-img">Image</span>' : badgeHtml(p.source)}${p.userUnit && p.userUnit !== 1 ? ' <span class="scale-note" title="UserUnit='+p.userUnit+' appliqué">×'+p.userUnit+'</span>' : ''}</td><td class="td-copy"><button class="copy-btn" data-copy="${f(p.wMm)} x ${f(p.hMm)} mm"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copier</button></td></tr>${p.bleed ? `<tr class="bleed-row"><td>↳ Fond perdu</td><td>${f(p.bleed.wMm)} mm</td><td>${f(p.bleed.hMm)} mm</td><td><span class="bleed-note">+${f(p.bleed.marginW)} mm/côté</span></td><td></td></tr>` : ''}`
     ).join('');
   }
 
@@ -886,44 +976,231 @@ function cardHtml(g) {
       </div>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Page</th><th>Largeur</th><th>Hauteur</th><th>Source</th></tr></thead>
+      <thead><tr><th onclick="setSort('name')">Page <span class="sort-arrow ${sortKey==='name'?'sorted':''}">↕</span></th><th onclick="setSort('w')" class="${sortKey==='w'?'sorted':''}">Largeur <span class="sort-arrow">↕</span></th><th onclick="setSort('h')" class="${sortKey==='h'?'sorted':''}">Hauteur <span class="sort-arrow">↕</span></th><th>Source</th><th style="width:90px"></th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
     ${warn}
   </div>`;
 }
 
+let activeFilter = 'all'; // 'all' | 'notrim' | 'pdf' | 'image'
+let sortKey = null; // 'name' | 'w' | 'h'
+let sortDir = 1;
+
+function setFilter(f) { activeFilter = f; render(); }
+
+function setSort(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  render();
+}
+
+function copyCell(td, val) {
+  navigator.clipboard.writeText(val).catch(() => {});
+  td.classList.add('copied');
+  setTimeout(() => td.classList.remove('copied'), 1200);
+}
+
+// Delegated click handler for copyable cells
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.copy-btn');
+  if (btn) {
+    const val = btn.dataset.copy;
+    if (!val) return;
+    navigator.clipboard.writeText(val).catch(() => {});
+    const origHTML = btn.innerHTML;
+    btn.classList.add('done');
+    btn.textContent = '✓ Copié';
+    setTimeout(() => { btn.classList.remove('done'); btn.innerHTML = origHTML; }, 1400);
+    return;
+  }
+  const td = e.target.closest('td.copyable');
+  if (!td) return;
+  const val = td.dataset.copy;
+  if (!val) return;
+  navigator.clipboard.writeText(val).catch(() => {});
+  td.classList.add('copied');
+  setTimeout(() => td.classList.remove('copied'), 1200);
+});
+
 function render() {
   const el = document.getElementById('results');
   if (!groups.length) { el.innerHTML = ''; return; }
+
   const done = groups.filter(g => !g.loading && !g.error);
+  const noTrimCount = done.filter(g => g.isFallback).length;
+  const imgCount = done.filter(g => g.isImage).length;
+  const pdfCount = done.filter(g => !g.isImage).length;
   const totalFiles = groups.length;
   const totalPages = done.reduce((s, g) => s + (g.numPages || 0), 0);
 
-  const toolbar = done.length
-    ? `<div class="toolbar">
-        <button class="btn btn-primary" onclick="exportCSV()">
-          <svg style="display:inline;vertical-align:middle;margin-right:5px" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exporter CSV
-        </button>
-        <button class="btn btn-ghost" onclick="clearAll()">Effacer tout</button>
-      </div>`
-    : `<button class="btn btn-ghost" onclick="clearAll()">Effacer tout</button>`;
+  // Filter
+  let visible = [...groups];
+  if (activeFilter === 'notrim') visible = visible.filter(g => g.isFallback || g.loading || g.error);
+  else if (activeFilter === 'pdf') visible = visible.filter(g => !g.isImage || g.loading || g.error);
+  else if (activeFilter === 'image') visible = visible.filter(g => g.isImage || g.loading || g.error);
+
+  // Sort
+  if (sortKey) {
+    visible.sort((a, b) => {
+      if (a.loading || a.error) return 1;
+      if (b.loading || b.error) return -1;
+      const pa = a.pages?.[0], pb = b.pages?.[0];
+      if (sortKey === 'name') return sortDir * a.name.localeCompare(b.name);
+      if (sortKey === 'w') return sortDir * ((pa?.wMm||0) - (pb?.wMm||0));
+      if (sortKey === 'h') return sortDir * ((pa?.hMm||0) - (pb?.hMm||0));
+      return 0;
+    });
+  }
+
+  const toolbar = done.length ? `
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="exportCSV()">
+        <svg style="display:inline;vertical-align:middle;margin-right:5px" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
+      <button class="btn" onclick="exportPDFReport()">
+        <svg style="display:inline;vertical-align:middle;margin-right:5px" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Rapport PDF
+      </button>
+      <button class="btn btn-ghost" onclick="clearAll()">Effacer tout</button>
+    </div>` : `<button class="btn btn-ghost" onclick="clearAll()">Effacer tout</button>`;
+
+  const filterBtns = done.length ? `
+    <div class="filters">
+      <span class="filter-label">Filtre :</span>
+      <button class="filter-btn ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Tous (${totalFiles})</button>
+      ${pdfCount ? `<button class="filter-btn ${activeFilter==='pdf'?'active':''}" onclick="setFilter('pdf')">PDF (${pdfCount})</button>` : ''}
+      ${imgCount ? `<button class="filter-btn ${activeFilter==='image'?'active':''}" onclick="setFilter('image')">Images (${imgCount})</button>` : ''}
+      ${noTrimCount ? `<button class="filter-btn ${activeFilter==='notrim'?'active':''}" onclick="setFilter('notrim')" style="border-color:var(--red);color:var(--red)">Sans TrimBox (${noTrimCount})</button>` : ''}
+    </div>` : '';
 
   el.innerHTML = `
     <div class="sec-head">
       <span class="sec-title">Résultats</span>
       ${toolbar}
     </div>
-    ${groups.map(cardHtml).join('')}
+    ${filterBtns}
+    ${visible.map(cardHtml).join('')}
     <div class="sumbar">
       <div class="stats">
-        <div><div class="stat-val">${totalFiles}</div><div class="stat-lbl">Fichier${totalFiles > 1 ? 's' : ''}</div></div>
-        <div><div class="stat-val">${totalPages}</div><div class="stat-lbl">Page${totalPages > 1 ? 's' : ''}</div></div>
+        <div><div class="stat-val">${totalFiles}</div><div class="stat-lbl">Fichier${totalFiles>1?'s':''}</div></div>
+        <div><div class="stat-val">${totalPages}</div><div class="stat-lbl">Page${totalPages>1?'s':''}</div></div>
       </div>
     </div>`;
 }
 
+// ── Image DPI readers ──────────────────────────────────────
+function readJpegDimensions(buf) {
+  const v = new DataView(buf);
+  if (v.getUint16(0) !== 0xFFD8) return null;
+  let off = 2;
+  while (off < buf.byteLength - 4) {
+    const marker = v.getUint16(off); off += 2;
+    const len = v.getUint16(off);
+    if (marker === 0xFFC0 || marker === 0xFFC2) {
+      const h = v.getUint16(off + 3);
+      const w = v.getUint16(off + 5);
+      // JFIF APP0 for DPI
+      let dpiX = 72, dpiY = 72;
+      try {
+        if (v.getUint16(2) === 0xFFE0) {
+          const unit = v.getUint8(11);
+          const rx = v.getUint16(12), ry = v.getUint16(14);
+          if (unit === 1 && rx > 0) { dpiX = rx; dpiY = ry; }
+          else if (unit === 2 && rx > 0) { dpiX = Math.round(rx*2.54); dpiY = Math.round(ry*2.54); }
+        }
+      } catch(e) {}
+      return { w, h, dpiX, dpiY };
+    }
+    off += len;
+  }
+  return null;
+}
+
+function readPngDimensions(buf) {
+  const v = new DataView(buf);
+  const sig = [137,80,78,71,13,10,26,10];
+  for (let i=0;i<8;i++) if (v.getUint8(i)!==sig[i]) return null;
+  const w = v.getUint32(16), h = v.getUint32(20);
+  let dpiX = 72, dpiY = 72;
+  let off = 8;
+  while (off < buf.byteLength - 12) {
+    const len = v.getUint32(off);
+    const type = String.fromCharCode(v.getUint8(off+4),v.getUint8(off+5),v.getUint8(off+6),v.getUint8(off+7));
+    if (type === 'pHYs' && len >= 9) {
+      const px = v.getUint32(off+8), py = v.getUint32(off+12);
+      const unit = v.getUint8(off+16);
+      if (unit === 1 && px > 0) { dpiX = Math.round(px/39.3701); dpiY = Math.round(py/39.3701); }
+    }
+    off += 12 + len;
+  }
+  return { w, h, dpiX, dpiY };
+}
+
+async function extractImageFile(buffer, name) {
+  const ext = name.split('.').pop().toLowerCase();
+  let dims = null;
+
+  if (ext === 'jpg' || ext === 'jpeg') dims = readJpegDimensions(buffer);
+  else if (ext === 'png') dims = readPngDimensions(buffer);
+  else if (ext === 'tif' || ext === 'tiff') {
+    // Basic TIFF: read IFD for width/height/resolution
+    try {
+      const v = new DataView(buffer);
+      const le = v.getUint16(0) === 0x4949;
+      const read16 = o => le ? v.getUint16(o,true) : v.getUint16(o);
+      const read32 = o => le ? v.getUint32(o,true) : v.getUint32(o);
+      const ifdOff = read32(4);
+      const nEntries = read16(ifdOff);
+      let w=0,h=0,dpiX=72,dpiY=72;
+      for (let i=0;i<nEntries;i++) {
+        const o = ifdOff + 2 + i*12;
+        const tag = read16(o);
+        const type = read16(o+2);
+        const val = read32(o+8);
+        if (tag===256) w = val;
+        else if (tag===257) h = val;
+        else if (tag===282||tag===283) {
+          // Rational
+          const rOff = val;
+          if (rOff + 8 <= buffer.byteLength) {
+            const num = read32(rOff), den = read32(rOff+4);
+            const dpi = den>0 ? num/den : 72;
+            if (tag===282) dpiX=Math.round(dpi);
+            else dpiY=Math.round(dpi);
+          }
+        }
+      }
+      if (w>0&&h>0) dims={w,h,dpiX,dpiY};
+    } catch(e){}
+  }
+
+  // WebP fallback: use Image element
+  if (!dims) {
+    dims = await new Promise(resolve => {
+      const blob = new Blob([buffer]);
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => { resolve({ w: img.naturalWidth, h: img.naturalHeight, dpiX: 72, dpiY: 72 }); URL.revokeObjectURL(url); };
+      img.onerror = () => { resolve(null); URL.revokeObjectURL(url); };
+      img.src = url;
+    });
+  }
+
+  if (!dims) return null;
+  const mmW = +((dims.w / dims.dpiX) * 25.4).toFixed(2);
+  const mmH = +((dims.h / dims.dpiY) * 25.4).toFixed(2);
+  return {
+    numPages: 1,
+    isImage: true,
+    pages: [{ wMm: mmW, hMm: mmH, source: `${dims.w}×${dims.h}px @ ${dims.dpiX}dpi`, bleed: null, userUnit: 1 }],
+    isFallback: false,
+    pixW: dims.w, pixH: dims.h, dpiX: dims.dpiX, dpiY: dims.dpiY
+  };
+}
+
+// ── Thumbnail renderer ─────────────────────────────────
 async function renderThumb(buffer) {
   try {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -937,50 +1214,81 @@ async function renderThumb(buffer) {
     canvas.height = Math.round(vp.height);
     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
     pdf.destroy();
-    return { canvas, width: canvas.width, height: canvas.height, dataUrl: canvas.toDataURL('image/jpeg', 0.85) };
+    return { canvas, width: canvas.width, height: canvas.height };
   } catch(e) { return null; }
 }
 
+async function renderImageThumb(buffer, name) {
+  return new Promise(resolve => {
+    const blob = new Blob([buffer]);
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 96, maxH = 124;
+      const scale = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.naturalWidth  * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve({ canvas, width: canvas.width, height: canvas.height });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+}
+
+// ── Process any file ───────────────────────────────────
 async function processFile(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) return;
-  if (groups.find(g => g.name === file.name)) return;
-  const ph = { name: file.name, loading: true, thumb: null };
+  const name = file.name;
+  const ext = name.split('.').pop().toLowerCase();
+  const isPDF = ext === 'pdf';
+  const isImg = ['jpg','jpeg','png','tif','tiff','webp'].includes(ext);
+  if (!isPDF && !isImg) return;
+  if (groups.find(g => g.name === name)) return;
+
+  const ph = { name, loading: true, thumb: null };
   groups.push(ph);
   render();
+
   try {
     const buffer = await file.arrayBuffer();
-    // Run thumb and extraction in parallel
-    const [res, thumbData] = await Promise.all([
-      extractFile(buffer.slice(0)),
-      renderThumb(buffer.slice(0))
-    ]);
-    const entry = { name: file.name, ...res, thumb: thumbData };
+    let res, thumbData;
+    if (isPDF) {
+      [res, thumbData] = await Promise.all([
+        extractFile(buffer.slice(0)),
+        renderThumb(buffer.slice(0))
+      ]);
+    } else {
+      [res, thumbData] = await Promise.all([
+        extractImageFile(buffer.slice(0), name),
+        renderImageThumb(buffer.slice(0), name)
+      ]);
+    }
+    const entry = { name, ...res, thumb: thumbData };
     groups[groups.indexOf(ph)] = entry;
     render();
-    // Paint canvas after render
     if (thumbData) {
       setTimeout(() => {
-        const id = 'thumb-' + file.name.replace(/[^a-z0-9]/gi,'_');
+        const id = 'thumb-' + name.replace(/[^a-z0-9]/gi,'_');
         const canvasEl = document.getElementById(id);
-        if (canvasEl) {
-          const ctx = canvasEl.getContext('2d');
-          ctx.drawImage(thumbData.canvas, 0, 0);
-        }
+        if (canvasEl) canvasEl.getContext('2d').drawImage(thumbData.canvas, 0, 0);
       }, 50);
     }
   } catch(e) {
     console.error(e);
-    groups[groups.indexOf(ph)] = { name: file.name, error: true, thumb: null };
+    groups[groups.indexOf(ph)] = { name, error: true, thumb: null };
     render();
   }
 }
 
 function exportCSV() {
-  const lines = ['Fichier;Page;Largeur (mm);Hauteur (mm);Source'];
+  const lines = ['Fichier;Type;Page;Largeur (mm);Hauteur (mm);Source'];
   for (const g of groups) {
     if (!g.pages) continue;
+    const type = g.isImage ? 'Image' : 'PDF';
     g.pages.forEach((p, i) =>
-      lines.push(`${g.name};${i+1};${parseFloat(p.wMm).toFixed(2)};${parseFloat(p.hMm).toFixed(2)};${p.source}`)
+      lines.push(`${g.name};${type};${i+1};${parseFloat(p.wMm).toFixed(2)};${parseFloat(p.hMm).toFixed(2)};${p.source}`)
     );
   }
   const a = Object.assign(document.createElement('a'), {
@@ -988,6 +1296,67 @@ function exportCSV() {
     download: 'trimbox-export.csv'
   });
   a.click(); URL.revokeObjectURL(a.href);
+}
+
+function exportPDFReport() {
+  const done = groups.filter(g => !g.loading && !g.error && g.pages);
+  if (!done.length) return;
+  const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
+  if (!jsPDF) { alert('jsPDF non chargé — vérifiez votre connexion internet.'); return; }
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = 210, margin = 14;
+  let y = 20;
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.setTextColor(212, 90, 32);
+  doc.text('Trimbox Scan — Rapport', margin, y);
+  y += 7;
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(120,120,120);
+  doc.text('Généré le ' + new Date().toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'}), margin, y);
+  y += 10;
+
+  const colW = [80, 28, 28, 30, 26];
+  const headers = ['Fichier', 'Largeur', 'Hauteur', 'Source', 'Type'];
+  const rowH = 7;
+
+  function drawRow(cols, isBold, bg) {
+    if (y + rowH > 280) { doc.addPage(); y = 20; }
+    if (bg) { doc.setFillColor(...bg); doc.rect(margin, y-5, pageW-2*margin, rowH, 'F'); }
+    doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(isBold ? 60 : 40, isBold ? 60 : 40, isBold ? 60 : 40);
+    let x = margin;
+    cols.forEach((c, i) => { doc.text(String(c), x+1, y); x += colW[i]; });
+    y += rowH;
+  }
+
+  // Header row
+  drawRow(headers, true, [245, 245, 243]);
+  doc.setDrawColor(200,200,200);
+  doc.line(margin, y-rowH+2, pageW-margin, y-rowH+2);
+
+  let altRow = false;
+  for (const g of done) {
+    const shortName = g.name.length > 38 ? g.name.slice(0,35)+'…' : g.name;
+    const type = g.isImage ? 'Image' : 'PDF';
+    const same = g.pages.every(p => p.wMm===g.pages[0].wMm && p.hMm===g.pages[0].hMm);
+    if (same) {
+      const p = g.pages[0];
+      const lbl = g.numPages > 1 ? `${shortName} (×${g.numPages})` : shortName;
+      drawRow([lbl, parseFloat(p.wMm).toFixed(2)+' mm', parseFloat(p.hMm).toFixed(2)+' mm', p.source, type], false, altRow?[252,251,249]:null);
+    } else {
+      g.pages.forEach((p, i) => {
+        const lbl = i===0 ? shortName : `  p.${i+1}`;
+        drawRow([lbl, parseFloat(p.wMm).toFixed(2)+' mm', parseFloat(p.hMm).toFixed(2)+' mm', p.source, type], i===0, altRow?[252,251,249]:null);
+      });
+    }
+    altRow = !altRow;
+    doc.setDrawColor(230,230,230);
+    doc.line(margin, y-rowH+2, pageW-margin, y-rowH+2);
+  }
+
+  doc.save('trimbox-rapport.pdf');
 }
 
 function clearAll() { groups.length = 0; render(); }
